@@ -3,7 +3,7 @@
 	"namespace": "ProdigalTechie",
 	"version_number": "0.3.308",
 	"description": "Want to adjust your Character effects? Modato allows you to do just that. In addition, Modato has built in Infinite Harvesting and Piggy Bank that will continue to work beyond wave 20. For more information checkout out the github repo",
-	"website_url": "https://github.com/ProdigalTechie/Modato",
+	"website_url": "https://github.com/kylebuss/Modato",
 	"dependencies": [],
 	"extra": {
 		"godot": {
