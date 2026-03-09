@@ -1,0 +1,16 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+
+[deps]
+
+files=[ "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.en.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.fr.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.zh_Hans_CN.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.ja.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.ko.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.ru.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.pl.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.es.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.pt.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.de.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.tr.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.it.translation" ]
+
+source_file="res://mods-unpacked/ProdigalTechie-Modato/translations/translations.csv"
+dest_files=[ "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.en.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.fr.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.zh_Hans_CN.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.ja.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.ko.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.ru.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.pl.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.es.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.pt.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.de.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.tr.translation", "res://mods-unpacked/ProdigalTechie-Modato/translations/translations.it.translation" ]
+
+[params]
+
+compress=true
+delimiter=0
