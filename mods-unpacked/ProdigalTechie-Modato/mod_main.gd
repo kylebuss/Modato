@@ -34,10 +34,10 @@ func _init():
 	ModLoaderLog.info("installing script extensions", MOD_ID + ":Main")
 	for ext_path in EXTS:
 		ModLoaderMod.install_script_extension(ext_dir + ext_path)
-	ModLoaderLog.info("installing script singletons", MOD_ID + ":Main")
+	#ModLoaderLog.info("installing script singletons", MOD_ID + ":Main")
 	# for singleton in SINGLETONS:
 	# 	ModLoaderMod.install_script_extension(sin_dir + singleton)
-	# ModLoaderLog.info("installing translations", MOD_ID + ":Main")
+	ModLoaderLog.info("installing translations", MOD_ID + ":Main")
 	for tr_path in TRANS:
 		ModLoaderMod.add_translation(res_dir + tr_path)
 
