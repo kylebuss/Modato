@@ -2,16 +2,20 @@
 	"name": "Modato",
 	"namespace": "ProdigalTechie",
 	"version_number": "0.3.308",
-	"description": "Want to adjust your Character effects? Modato allows you to do just that. In addition, Modato has built in Infinite Harvesting and Piggy Bank that will continue to work beyond wave 20. For more information checkout out the github repo",
+	"description": "Go Endless with Modato where Infinite Piggy Bank, Infinite Harvesting, and Bosses still drop Legendary Crates!",
 	"website_url": "https://github.com/kylebuss/Modato",
-	"dependencies": [],
+	"dependencies": ["dami-ModOptions"],
 	"extra": {
 		"godot": {
 			"incompatibilities": [],
 			"authors": ["ProdigalTechie"],
 			"compatible_game_version": ["1.1.8.1"],
 			"compatible_mod_loader_version": ["6.0.0"],
-			"config-defaults": {}
+			"config_defaults": {
+				"enable_infinite_piggybank": true,
+				"enable_infinite_harvesting": true,
+				"enable_legendary_crates": true
+			}
 		}
 	}
 }

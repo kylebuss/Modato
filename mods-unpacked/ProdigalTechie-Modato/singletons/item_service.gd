@@ -1,4 +1,17 @@
 extends "res://singletons/item_service.gd"
+ 
+# Helpers to read dami-ModOptions settings for this mod
+func _get_mod_options() -> Dictionary:
+	var node = get_node_or_null("/root/ModLoader/dami-ModOptions/ModsConfigInterface")
+	if node:
+		return node.get_settings("ProdigalTechie-Modato")
+	return {}
+
+func _mod_option_enabled(key: String, default = true) -> bool:
+	var settings = _get_mod_options()
+	if settings.has(key):
+		return settings[key]
+	return default
 
 func get_consumable_to_drop(unit: Unit, item_chance: float) -> ConsumableData:
 	var luck := 0.0
@@ -18,10 +31,17 @@ func get_consumable_to_drop(unit: Unit, item_chance: float) -> ConsumableData:
 		var consumable_tier: int = Utils.randi_range(unit.stats.min_consumable_tier, unit.stats.max_consumable_tier)
 
 		if Utils.get_chance_success(item_chance):
-			if unit is Boss:
-				consumable_tier = Tier.LEGENDARY
-			else:
-				consumable_tier = Tier.UNCOMMON
+			if _mod_option_enabled("enable_legendary_crates", true):
+				if unit is Boss:
+					var r = randf()
+					if r < 0.6:
+						consumable_tier = Tier.UNCOMMON
+					elif r < 0.9:
+						consumable_tier = Tier.LEGENDARY
+					else:
+						consumable_to_drop = get_consumable_for_tier(Tier.COMMON)
+						for player_index in RunData.get_player_count():
+							RunData.add_tracked_value(player_index, Keys.item_fruit_basket_hash, 1)
 
 		consumable_to_drop = get_consumable_for_tier(consumable_tier)
 
