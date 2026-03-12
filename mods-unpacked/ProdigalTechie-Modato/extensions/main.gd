@@ -3,9 +3,58 @@ extends "res://main.gd"
 
 const LOG_ID = "ProdigalTechie-Modato:Main"
 
+# ModOptions integration: cache settings and subscribe to changes
+var _mods_config_interface = null
+var _modoptions_connected := false
+var _opt_infinite_piggy := true
+var _opt_infinite_harvesting := true
+
+func _ready() -> void:
+	_init_modoptions()
+
+func _init_modoptions() -> void:
+	if _mods_config_interface == null:
+		_mods_config_interface = get_node_or_null("/root/ModLoader/dami-ModOptions/ModsConfigInterface")
+	if _mods_config_interface and not _modoptions_connected:
+		var _err = _mods_config_interface.connect("setting_changed", self , "_on_modoption_setting_changed")
+		_modoptions_connected = true
+		_update_modoptions_cache()
+
+func _update_modoptions_cache() -> void:
+	if not _mods_config_interface:
+		return
+	var s = _mods_config_interface.get_settings("ProdigalTechie-Modato")
+	if s:
+		if s.has("enable_infinite_piggybank"):
+			_opt_infinite_piggy = s["enable_infinite_piggybank"]
+		if s.has("enable_infinite_harvesting"):
+			_opt_infinite_harvesting = s["enable_infinite_harvesting"]
+
+func _on_modoption_setting_changed(setting_name, value, mod_name):
+	if mod_name != "ProdigalTechie-Modato":
+		return
+	if setting_name == "enable_infinite_piggybank":
+		_opt_infinite_piggy = value
+	elif setting_name == "enable_infinite_harvesting":
+		_opt_infinite_harvesting = value
+
+# Helpers to read dami-ModOptions settings for this mod
+func _get_mod_options() -> Dictionary:
+	var node = get_node_or_null("/root/ModLoader/dami-ModOptions/ModsConfigInterface")
+	if node:
+		return node.get_settings("ProdigalTechie-Modato")
+	return {}
+
+func _mod_option_enabled(key: String, default = true) -> bool:
+	var settings = _get_mod_options()
+	if settings.has(key):
+		return settings[key]
+	return default
+
 # Called when the node enters the scene tree for the first time.
 func _on_EntitySpawner_players_spawned(players: Array) -> void:
 	DebugService.log_data("%s: _on_EntitySpawner_players_spawned start" % LOG_ID)
+	_init_modoptions()
 	_players = players
 	_camera.targets = players
 	_floating_text_manager.players = _players
@@ -73,12 +122,17 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void:
 		connect_visual_effects(_players[i])
 
 		var pct_val = RunData.get_player_effect(Keys.gain_pct_gold_start_wave_hash, i)
-		var apply_pct_gold_wave = pct_val > 0
+		# Apply percent-gold on start wave when positive and either in normal waves
+		# or when infinite piggy is enabled. Negative values are handled as before.
+		var apply_pct_gold_wave = (pct_val > 0 and (RunData.current_wave <= RunData.nb_of_waves or _opt_infinite_piggy)) or pct_val < 0
+
+		if pct_val < 0 and RunData.current_wave > RunData.nb_of_waves:
+			pct_val = -100.0
 
 		if apply_pct_gold_wave:
 			var val = RunData.get_player_gold(i) * (pct_val / 100.0)
 			RunData.add_gold(val, i)
-			if pct_val > 0:
+			if pct_val > 0 and _opt_infinite_piggy:
 				RunData.add_tracked_value(i, Keys.item_piggy_bank_hash, val)
 
 
@@ -103,33 +157,54 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void:
 	RunData.reset_wave_caches()
 
 # Allow harvesting to grow infinitely
+
 func _on_HarvestingTimer_timeout() -> void:
-	DebugService.log_data("%s: _on_HarvestingTimer_timeout start" % LOG_ID)
-	for player_index in range(RunData.get_player_count()):
-		DebugService.log_data("%s: harvesting for player %d" % [LOG_ID, player_index])
-		var harvesting_stat = Utils.get_stat(Keys.stat_harvesting_hash, player_index)
-		if harvesting_stat <= 0:
-			continue
-		
-		var harvesting_growth = RunData.get_player_effect(Keys.harvesting_growth_hash, player_index)
-		var val = ceil(harvesting_stat * (harvesting_growth / 100.0))
+	_init_modoptions()
 
-		var has_crown = false
-		var crown_value = 0
+	# If infinite harvesting is enabled, apply the growth behavior.
+	if _opt_infinite_harvesting:
+		DebugService.log_data("%s: _on_HarvestingTimer_timeout start (infinite enabled)" % LOG_ID)
+		for player_index in range(RunData.get_player_count()):
+			DebugService.log_data("%s: harvesting for player %d" % [LOG_ID, player_index])
+			var harvesting_stat = Utils.get_stat(Keys.stat_harvesting_hash, player_index)
+			if harvesting_stat <= 0:
+				continue
+			var harvesting_growth = RunData.get_player_effect(Keys.harvesting_growth_hash, player_index)
+			var val = ceil(harvesting_stat * (harvesting_growth / 100.0))
 
-		var items = RunData.get_player_items_ref(player_index)
-		for item in items:
-			if item.my_id_hash == Keys.item_crown_hash:
-				has_crown = true
-				crown_value = item.effects[0].value
-				break
+			var has_crown = false
+			var crown_value = 0
 
-		if has_crown:
-			RunData.add_tracked_value(player_index, Keys.item_crown_hash, ceil(harvesting_stat * (crown_value / 100.0)) as int)
+			var items = RunData.get_player_items_ref(player_index)
+			for item in items:
+				if item.my_id_hash == Keys.item_crown_hash:
+					has_crown = true
+					crown_value = item.effects[0].value
+					break
 
-		if val > 0:
-			RunData.add_stat(Keys.stat_harvesting_hash, val, player_index)
-			RunData.call_deferred("_emit_stats_updated")
+			if has_crown:
+				RunData.add_tracked_value(player_index, Keys.item_crown_hash, ceil(harvesting_stat * (crown_value / 100.0)) as int)
+
+			if val > 0:
+				RunData.add_stat(Keys.stat_harvesting_hash, val, player_index)
+				RunData.call_deferred("_emit_stats_updated")
+
+	# If infinite harvesting is disabled, ensure endless-wave reduction still applies.
+	else:
+		# Only apply reduction once we've entered endless waves
+		if RunData.current_wave <= RunData.nb_of_waves:
+			return
+		var factor := 0.2
+
+		for player_index in range(RunData.get_player_count()):
+			var base_harvesting = RunData.get_player_effect(Keys.stat_harvesting_hash, player_index)
+			if base_harvesting <= 0:
+				continue
+			var base_reduce = ceil(base_harvesting * factor)
+			if base_reduce > 0:
+				base_reduce = min(base_reduce, base_harvesting)
+				RunData.remove_stat(Keys.stat_harvesting_hash, base_reduce, player_index)
+				RunData.call_deferred("_emit_stats_updated")
 
 
 # Override level-up handling to add safety guards (avoid modifying base Brotato files)
@@ -176,3 +251,65 @@ func on_levelled_up(player_index: int) -> void:
 				val -= 1
 			if val > 0:
 				RunData.add_tracked_value(player_index, Keys.item_barnacle_hash, 1)
+
+
+# After wave 20, force Elites to drop a consumable with custom distribution:
+# 60% Green crate, 30% Red (legendary) crate, 10% Fruit. Only applies to elites.
+func spawn_consumables(unit: Unit) -> void:
+	if unit == null:
+		return
+
+	var unit_is_elite := false
+	if unit is Boss:
+		unit_is_elite = true
+	else:
+		var maybe_elite = null
+		# safe getter: Object.get returns null if property doesn't exist
+		maybe_elite = unit.get("is_elite")
+		if maybe_elite == true:
+			unit_is_elite = true
+
+	if unit_is_elite and RunData.current_wave > 20:
+		var r = randf()
+		var consumable_path: String = ""
+
+		if r < 0.6:
+			consumable_path = "res://items/consumables/item_box/item_box_data.tres"
+		elif r < 0.9:
+			consumable_path = "res://items/consumables/legendary_item_box/legendary_item_box_data.tres"
+		else:
+			consumable_path = "res://items/consumables/fruit/fruit_data.tres"
+
+		var consumable_to_spawn: ConsumableData = null
+		if consumable_path != "":
+			var base_res = load(consumable_path)
+			if base_res:
+				consumable_to_spawn = base_res.duplicate()
+
+		if consumable_to_spawn == null:
+			# Fallback to default behavior if resource load failed
+			.spawn_consumables(unit)
+			return
+
+		if consumable_to_spawn.my_id_hash == Keys.consumable_item_box_hash or consumable_to_spawn.my_id_hash == Keys.consumable_legendary_item_box_hash:
+			_items_spawned_this_wave += 1
+
+		var consumable: Consumable = get_node_from_pool(_consumable_pool_id, _consumables_container)
+		if consumable == null:
+			consumable = consumable_scene.instance()
+			_consumables_container.call_deferred("add_child", consumable)
+			var _error = consumable.connect("picked_up", self , "on_consumable_picked_up")
+			yield (consumable, "ready")
+
+		consumable.already_picked_up = false
+		consumable.consumable_data = consumable_to_spawn
+		consumable.set_texture(consumable_to_spawn.icon)
+		var pos := unit.global_position
+		var dist := rand_range(50, 100 + unit.stats.gold_spread)
+		var push_back_destination: Vector2 = ZoneService.get_rand_pos_in_area(pos, dist, 0)
+		consumable.drop(pos, 0, push_back_destination)
+		_consumables.push_back(consumable)
+		return
+
+	# Not an elite after wave 20: fall back to base logic
+	.spawn_consumables(unit)
