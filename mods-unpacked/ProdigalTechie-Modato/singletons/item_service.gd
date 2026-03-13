@@ -31,7 +31,8 @@ func get_consumable_to_drop(unit: Unit, item_chance: float) -> ConsumableData:
 		var consumable_tier: int = Utils.randi_range(unit.stats.min_consumable_tier, unit.stats.max_consumable_tier)
 
 		if Utils.get_chance_success(item_chance):
-			if _mod_option_enabled("enable_legendary_crates", true):
+			# Only apply the mod's legendary-crate behavior during endless waves
+			if _mod_option_enabled("enable_legendary_crates", true) and RunData.current_wave > RunData.nb_of_waves:
 				if unit is Boss:
 					var r = randf()
 					if r < 0.6:
