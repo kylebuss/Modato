@@ -14,7 +14,8 @@
 			"config_defaults": {
 				"enable_infinite_piggybank": true,
 				"enable_infinite_harvesting": true,
-				"enable_legendary_crates": true
+				"enable_legendary_crates": true,
+				"enable_looter_legendary": true
 			}
 		}
 	}

@@ -8,6 +8,7 @@ var _mods_config_interface = null
 var _modoptions_connected := false
 var _opt_infinite_piggy := true
 var _opt_infinite_harvesting := true
+var _opt_looter_legendary := true
 
 func _ready() -> void:
 	_init_modoptions()
@@ -29,6 +30,8 @@ func _update_modoptions_cache() -> void:
 			_opt_infinite_piggy = s["enable_infinite_piggybank"]
 		if s.has("enable_infinite_harvesting"):
 			_opt_infinite_harvesting = s["enable_infinite_harvesting"]
+		if s.has("enable_looter_legendary"):
+			_opt_looter_legendary = s["enable_looter_legendary"]
 
 func _on_modoption_setting_changed(setting_name, value, mod_name):
 	if mod_name != "ProdigalTechie-Modato":
@@ -37,6 +40,8 @@ func _on_modoption_setting_changed(setting_name, value, mod_name):
 		_opt_infinite_piggy = value
 	elif setting_name == "enable_infinite_harvesting":
 		_opt_infinite_harvesting = value
+	elif setting_name == "enable_looter_legendary":
+		_opt_looter_legendary = value
 
 # Helpers to read dami-ModOptions settings for this mod
 func _get_mod_options() -> Dictionary:

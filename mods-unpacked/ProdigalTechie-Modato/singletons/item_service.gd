@@ -1,5 +1,7 @@
+# Extend base ItemService and reference the tree stats resource for detection
 extends "res://singletons/item_service.gd"
- 
+onready var _tree_stats_res: Resource = preload("res://entities/units/neutral/tree_stats.tres")
+
 # Helpers to read dami-ModOptions settings for this mod
 func _get_mod_options() -> Dictionary:
 	var node = get_node_or_null("/root/ModLoader/dami-ModOptions/ModsConfigInterface")
@@ -30,8 +32,40 @@ func get_consumable_to_drop(unit: Unit, item_chance: float) -> ConsumableData:
 	if Utils.get_chance_success(consumable_drop_chance) or unit.stats.always_drop_consumables:
 		var consumable_tier: int = Utils.randi_range(unit.stats.min_consumable_tier, unit.stats.max_consumable_tier)
 
+		# If this is a Tree, enforce 25% crate / 75% fruit by overriding item_chance
+		if unit.stats == _tree_stats_res:
+			item_chance = 0.25
+
 		if Utils.get_chance_success(item_chance):
-			# Only apply the mod's legendary-crate behavior during endless waves
+			# Tree-specific crate behavior: when a crate spawns from a Tree
+			# give Legendary with 10% chance on wave 8+, otherwise Common
+			if unit.stats == _tree_stats_res:
+				var r_tree = randf()
+				if RunData.current_wave >= 8 and r_tree < 0.25:
+					var legendary_tree_chance = randf()
+					if legendary_tree_chance < 0.1:
+						consumable_to_drop = get_consumable_for_tier(Tier.LEGENDARY)
+					else:
+						consumable_to_drop = get_consumable_for_tier(Tier.UNCOMMON)
+				else:
+					if r_tree < 0.25:
+						consumable_to_drop = get_consumable_for_tier(Tier.UNCOMMON)
+					else:
+						consumable_to_drop = get_consumable_for_tier(Tier.COMMON)
+
+			# Make Looters drop 95% Common (fruit) and 5% Legendary crates when enabled (only wave 8+)
+			if _mod_option_enabled("enable_looter_legendary", true) and unit is Looter and RunData.current_wave >= 8:
+				var r_looter = randf()
+				if r_looter < 0.05:
+					consumable_to_drop = get_consumable_for_tier(Tier.LEGENDARY)
+				else:
+					consumable_to_drop = get_consumable_for_tier(Tier.UNCOMMON)
+
+			# Preserve base game's boss legendary behavior during normal (non-endless) waves
+			if consumable_to_drop == null and unit is Boss and RunData.current_wave <= RunData.nb_of_waves:
+				consumable_tier = Tier.LEGENDARY
+
+			# Only apply the mod's boss legendary-crate behavior during endless waves
 			if _mod_option_enabled("enable_legendary_crates", true) and RunData.current_wave > RunData.nb_of_waves:
 				if unit is Boss:
 					var r = randf()
@@ -44,7 +78,8 @@ func get_consumable_to_drop(unit: Unit, item_chance: float) -> ConsumableData:
 						for player_index in RunData.get_player_count():
 							RunData.add_tracked_value(player_index, Keys.item_fruit_basket_hash, 1)
 
-		consumable_to_drop = get_consumable_for_tier(consumable_tier)
+		if consumable_to_drop == null:
+			consumable_to_drop = get_consumable_for_tier(consumable_tier)
 
 	elif Utils.get_chance_success(RunData.sum_all_player_effects(Keys.enemy_fruit_drops_hash) / 100.0):
 		consumable_to_drop = get_consumable_for_tier(Tier.COMMON)
