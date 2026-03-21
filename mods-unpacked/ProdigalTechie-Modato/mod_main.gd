@@ -5,11 +5,14 @@ const MOD_DIR = MOD_ID + "/"
 
 const EXTS = [
 	"main.gd",
+	"ui/menus/run/character_selection.gd"
 ]
 
 const SINGLETONS = [
-	"item_service.gd"
+	"item_service.gd",
+	"text_patch.gd"
 ]
+
 
 const TRANS = [
 	"translations.de.translation",
