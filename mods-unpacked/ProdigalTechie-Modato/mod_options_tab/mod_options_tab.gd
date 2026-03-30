@@ -38,11 +38,11 @@ func _init_mod_config_ui(mod_config: Dictionary, mod_name: String):
     mod_list_vbox.add_child(mod_config_container)
     mod_list_vbox.move_child(mod_config_container, mod_list_vbox.get_child_count() - 2)
 
-    var mod_config_label = Label.new()
-    mod_config_label.set("custom_fonts/font", preload("res://resources/fonts/actual/base/font_26_outline.tres"))
-    mod_config_label.text = mod_name
-    mod_config_label.align = VBoxContainer.ALIGN_BEGIN
-    mod_config_container.add_child(mod_config_label)
+    # var mod_config_label = Label.new()
+    # mod_config_label.set("custom_fonts/font", preload("res://resources/fonts/actual/base/font_26_outline.tres"))
+    # mod_config_label.text = mod_name
+    # mod_config_label.align = VBoxContainer.ALIGN_BEGIN
+    # mod_config_container.add_child(mod_config_label)
 
     var mod_config_values_container = VBoxContainer.new()
     mod_config_values_container.set("custom_constants/separation", 10)
