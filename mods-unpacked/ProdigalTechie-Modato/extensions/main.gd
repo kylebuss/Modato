@@ -15,7 +15,12 @@ func _ready() -> void:
 
 func _init_modoptions() -> void:
 	if _mods_config_interface == null:
-		_mods_config_interface = get_node_or_null("/root/ModLoader/dami-ModOptions/ModsConfigInterface")
+		var paths = ["/root/ModLoader/ProdigalTechie-Modato/ModsConfigInterface"]
+		for p in paths:
+			var n = get_node_or_null(p)
+			if n:
+				_mods_config_interface = n
+				break
 	if _mods_config_interface and not _modoptions_connected:
 		var _err = _mods_config_interface.connect("setting_changed", self , "_on_modoption_setting_changed")
 		_modoptions_connected = true
@@ -45,9 +50,11 @@ func _on_modoption_setting_changed(setting_name, value, mod_name):
 
 # Helpers to read dami-ModOptions settings for this mod
 func _get_mod_options() -> Dictionary:
-	var node = get_node_or_null("/root/ModLoader/dami-ModOptions/ModsConfigInterface")
-	if node:
-		return node.get_settings("ProdigalTechie-Modato")
+	var paths = ["/root/ModLoader/ProdigalTechie-Modato/ModsConfigInterface"]
+	for p in paths:
+		var node = get_node_or_null(p)
+		if node:
+			return node.get_settings("ProdigalTechie-Modato")
 	return {}
 
 func _mod_option_enabled(key: String, default = true) -> bool:

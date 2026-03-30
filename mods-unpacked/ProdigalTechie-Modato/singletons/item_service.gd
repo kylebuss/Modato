@@ -4,9 +4,11 @@ onready var _tree_stats_res: Resource = preload("res://entities/units/neutral/tr
 
 # Helpers to read dami-ModOptions settings for this mod
 func _get_mod_options() -> Dictionary:
-	var node = get_node_or_null("/root/ModLoader/dami-ModOptions/ModsConfigInterface")
-	if node:
-		return node.get_settings("ProdigalTechie-Modato")
+	var paths = ["/root/ModLoader/ProdigalTechie-Modato/ModsConfigInterface"]
+	for p in paths:
+		var node = get_node_or_null(p)
+		if node:
+			return node.get_settings("ProdigalTechie-Modato")
 	return {}
 
 func _mod_option_enabled(key: String, default = true) -> bool:

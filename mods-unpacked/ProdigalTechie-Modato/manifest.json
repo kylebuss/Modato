@@ -4,7 +4,7 @@
 	"version_number": "0.3.308",
 	"description": "Go Endless with Modato where Infinite Piggy Bank, Infinite Harvesting, and Bosses still drop Legendary Crates!",
 	"website_url": "https://github.com/kylebuss/Modato",
-	"dependencies": ["dami-ModOptions"],
+	"dependencies": [],
 	"extra": {
 		"godot": {
 			"incompatibilities": [],
