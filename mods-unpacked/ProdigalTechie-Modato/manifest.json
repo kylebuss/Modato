@@ -15,7 +15,8 @@
 				"enable_infinite_piggybank": true,
 				"enable_infinite_harvesting": true,
 				"enable_legendary_crates": true,
-				"enable_looter_legendary": true
+				"enable_looter_legendary": true,
+				"enable_tree_legendary": true
 			}
 		}
 	}

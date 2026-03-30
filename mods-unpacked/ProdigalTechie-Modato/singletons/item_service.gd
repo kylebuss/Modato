@@ -24,6 +24,9 @@ func get_consumable_to_drop(unit: Unit, item_chance: float) -> ConsumableData:
 	if RunData.current_wave > RunData.nb_of_waves:
 		consumable_drop_chance /= (1.0 + RunData.get_endless_factor())
 
+	if unit.stats == _tree_stats_res:
+			consumable_drop_chance = max(consumable_drop_chance, 0.5)
+
 	if DebugService.always_drop_crates:
 		consumable_drop_chance = 1.0
 		item_chance = 1.0
@@ -32,35 +35,35 @@ func get_consumable_to_drop(unit: Unit, item_chance: float) -> ConsumableData:
 	if Utils.get_chance_success(consumable_drop_chance) or unit.stats.always_drop_consumables:
 		var consumable_tier: int = Utils.randi_range(unit.stats.min_consumable_tier, unit.stats.max_consumable_tier)
 
-		# If this is a Tree, enforce 25% crate / 75% fruit by overriding item_chance
+		# If this is a Tree, enforce 50% crate / 50% fruit by overriding item_chance
 		if unit.stats == _tree_stats_res:
-			item_chance = 0.25
+			item_chance = 0.50
 
 		if Utils.get_chance_success(item_chance):
 			# Tree-specific crate behavior: when a crate spawns from a Tree
-			# give Legendary with 10% chance on wave 8+, otherwise Common
-			if unit.stats == _tree_stats_res:
+			# give Legendary with 20% chance on wave 8+, otherwise Common
+			if unit.stats == _tree_stats_res and _mod_option_enabled("enable_tree_legendary", true):
 				var r_tree = randf()
-				if RunData.current_wave >= 8 and r_tree < 0.25:
+				if RunData.current_wave >= 8 and r_tree < 0.5:
 					var legendary_tree_chance = randf()
-					if legendary_tree_chance < 0.1:
+					if legendary_tree_chance < 0.4:
 						consumable_to_drop = get_consumable_for_tier(Tier.LEGENDARY)
 					else:
 						consumable_to_drop = get_consumable_for_tier(Tier.UNCOMMON)
 				else:
-					if r_tree < 0.25:
+					if r_tree < 0.5:
 						consumable_to_drop = get_consumable_for_tier(Tier.UNCOMMON)
 					else:
 						consumable_to_drop = get_consumable_for_tier(Tier.COMMON)
 
-			# Make Looters drop 95% Common (fruit) and 5% Legendary crates when enabled (only wave 8+)
-			if _mod_option_enabled("enable_looter_legendary", true) and unit is Looter and RunData.current_wave >= 8:
+			# Make Looters drop 70% Uncommon (crate) and 30% Legendary crates when enabled (only wave 8+)
+			if _mod_option_enabled("enable_looter_legendary", true) and unit is Looter:
+				consumable_to_drop = get_consumable_for_tier(Tier.UNCOMMON)
 				var r_looter = randf()
-				if r_looter < 0.05:
+				if RunData.current_wave >= 8 and r_looter < 0.3:
 					consumable_to_drop = get_consumable_for_tier(Tier.LEGENDARY)
-				else:
-					consumable_to_drop = get_consumable_for_tier(Tier.UNCOMMON)
-
+				
+					
 			# Preserve base game's boss legendary behavior during normal (non-endless) waves
 			if consumable_to_drop == null and unit is Boss and RunData.current_wave <= RunData.nb_of_waves:
 				consumable_tier = Tier.LEGENDARY
